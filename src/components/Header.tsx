@@ -1,12 +1,9 @@
-import { Shield, FileCheck } from 'lucide-react';
+import React from 'react';
+import { Shield } from 'lucide-react';
 import { PMMG_BRAND } from '../config/brand';
 import { SYSTEM_METADATA } from '../config/version';
 
-interface HeaderProps {
-  onOpenVerifier: () => void;
-}
-
-export const Header: React.FC<HeaderProps> = ({ onOpenVerifier }) => {
+export const Header: React.FC = () => {
   return (
     <header className="bg-[#373435] text-white shadow-md border-b-4 border-[#A08F63]">
       <div className="max-w-5xl mx-auto px-4 py-4 sm:px-6">
@@ -32,19 +29,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenVerifier }) => {
                 {PMMG_BRAND.unit} • {PMMG_BRAND.subUnit}
               </p>
             </div>
-          </div>
-
-          {/* Botões de Ação Auxiliar */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onOpenVerifier}
-              type="button"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded bg-[#A08F63]/20 hover:bg-[#A08F63]/30 text-[#A08F63] border border-[#A08F63]/40 transition-colors"
-              title="Verificar integridade de um pacote de evidência existente"
-            >
-              <FileCheck className="w-4 h-4" />
-              <span>Verificador de Integridade</span>
-            </button>
           </div>
         </div>
       </div>

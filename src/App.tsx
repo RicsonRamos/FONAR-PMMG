@@ -20,7 +20,6 @@ import { FormSectionComponent } from './components/FormSection';
 import { FormField } from './components/FormField';
 import { DeclarationBox } from './components/DeclarationBox';
 import { SubmissionStatus } from './components/SubmissionStatus';
-import { VerifierModal } from './components/VerifierModal';
 import { FormValues, FormQuestion } from './types/form';
 import { AuditEvent, CanonicalSubmissionJson } from './types/snapshot';
 import { BackendResponse, EvidenceTransmissionPackage } from './types/evidence';
@@ -168,7 +167,6 @@ export const App: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [backendResponse, setBackendResponse] = useState<BackendResponse | null>(null);
   const [transmissionPackage, setTransmissionPackage] = useState<EvidenceTransmissionPackage | null>(null);
-  const [showVerifier, setShowVerifier] = useState<boolean>(false);
   const [clientNetworkInfo, setClientNetworkInfo] = useState<ClientNetworkInfo | null>(null);
 
   const formStartedRef = useRef(false);
@@ -543,7 +541,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F5F7] text-[#1F2421]">
-      <Header onOpenVerifier={() => setShowVerifier(true)} />
+      <Header />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-3 py-4 sm:px-6 sm:py-6">
         {backendResponse ? (
@@ -819,9 +817,6 @@ export const App: React.FC = () => {
           </p>
         </div>
       </footer>
-
-      {/* Modal do Verificador de Integridade */}
-      <VerifierModal isOpen={showVerifier} onClose={() => setShowVerifier(false)} />
     </div>
   );
 };
