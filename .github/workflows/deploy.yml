@@ -38,7 +38,7 @@ jobs:
 
       - name: Build do Frontend (Vite)
         env:
-          VITE_GOOGLE_APPS_SCRIPT_URL: ${{ vars.VITE_GOOGLE_APPS_SCRIPT_URL }}
+          VITE_GOOGLE_APPS_SCRIPT_URL: ${{ secrets.VITE_GOOGLE_APPS_SCRIPT_URL }}
         run: npm run build
 
       - name: Configurar GitHub Pages
