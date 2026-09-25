@@ -5,6 +5,8 @@ dist-ssr/
 *.local
 .npm
 .DS_Store
+__pycache__/
+*.py[cod]
 
 # Temporary scratch and extraction files
 *.txt
