@@ -88,20 +88,22 @@ export const FORM_SECTIONS: FormSection[] = [
         "id": "field_4",
         "version": "1.0",
         "index": 4,
-        "label": "NOME DA VÍTIMA (DATA DE NASCIMENTO, NOME SOCIAL E OUTROS DADOS)",
-        "type": "textarea",
+        "label": "NOME COMPLETO DA VÍTIMA",
+        "type": "text",
+        "placeholder": "Digite seu nome completo",
         "description": null,
         "options": [],
-        "allowOther": true,
-        "required": false,
+        "allowOther": false,
+        "required": true,
         "sectionId": "section_victim"
       },
       {
-        "id": "field_5",
+        "id": "field_victim_social_name",
         "version": "1.0",
         "index": 5,
-        "label": "RG DA VÍTIMA",
+        "label": "NOME SOCIAL DA VÍTIMA (SE HOUVER)",
         "type": "text",
+        "placeholder": "Como prefere ser chamada (opcional)",
         "description": null,
         "options": [],
         "allowOther": false,
@@ -109,11 +111,24 @@ export const FORM_SECTIONS: FormSection[] = [
         "sectionId": "section_victim"
       },
       {
-        "id": "field_6",
+        "id": "field_victim_birthdate",
         "version": "1.0",
         "index": 6,
-        "label": "OCUPAÇÃO DA VÍTIMA",
+        "label": "DATA DE NASCIMENTO DA VÍTIMA",
+        "type": "date",
+        "description": null,
+        "options": [],
+        "allowOther": false,
+        "required": false,
+        "sectionId": "section_victim"
+      },
+      {
+        "id": "field_5",
+        "version": "1.0",
+        "index": 7,
+        "label": "RG DA VÍTIMA",
         "type": "text",
+        "placeholder": "Número do RG e Órgão Expedidor",
         "description": null,
         "options": [],
         "allowOther": false,
@@ -123,9 +138,10 @@ export const FORM_SECTIONS: FormSection[] = [
       {
         "id": "field_7",
         "version": "1.0",
-        "index": 7,
+        "index": 8,
         "label": "CPF DA VÍTIMA",
         "type": "text",
+        "placeholder": "000.000.000-00",
         "description": null,
         "options": [],
         "allowOther": false,
@@ -133,10 +149,156 @@ export const FORM_SECTIONS: FormSection[] = [
         "sectionId": "section_victim"
       },
       {
+        "id": "field_16",
+        "version": "1.0",
+        "index": 9,
+        "label": "TELEFONE DA VÍTIMA COM DDD",
+        "type": "text",
+        "placeholder": "(XX) XXXXX-XXXX",
+        "description": null,
+        "options": [],
+        "allowOther": false,
+        "required": false,
+        "sectionId": "section_victim"
+      },
+      {
+        "id": "field_17",
+        "version": "1.0",
+        "index": 10,
+        "label": "E-MAIL DA VÍTIMA",
+        "type": "text",
+        "placeholder": "exemplo@email.com",
+        "description": null,
+        "options": [],
+        "allowOther": false,
+        "required": false,
+        "sectionId": "section_victim"
+      },
+      {
+        "id": "field_victim_cep",
+        "version": "1.0",
+        "index": 11,
+        "label": "CEP DA RESIDÊNCIA DA VÍTIMA",
+        "type": "text",
+        "placeholder": "00000-000",
+        "description": "Digite o CEP para buscar rua, bairro e cidade automaticamente",
+        "options": [],
+        "allowOther": false,
+        "required": false,
+        "sectionId": "section_victim"
+      },
+      {
+        "id": "field_victim_street",
+        "version": "1.0",
+        "index": 12,
+        "label": "LOGRADOURO / RUA / AVENIDA",
+        "type": "text",
+        "placeholder": "Nome da rua ou avenida",
+        "description": null,
+        "options": [],
+        "allowOther": false,
+        "required": false,
+        "sectionId": "section_victim"
+      },
+      {
+        "id": "field_victim_number",
+        "version": "1.0",
+        "index": 13,
+        "label": "NÚMERO DA RESIDÊNCIA",
+        "type": "text",
+        "placeholder": "Número ou S/N",
+        "description": null,
+        "options": [],
+        "allowOther": false,
+        "required": false,
+        "sectionId": "section_victim"
+      },
+      {
+        "id": "field_victim_complement",
+        "version": "1.0",
+        "index": 14,
+        "label": "COMPLEMENTO",
+        "type": "text",
+        "placeholder": "Apartamento, bloco, etc. (se houver)",
+        "description": null,
+        "options": [],
+        "allowOther": false,
+        "required": false,
+        "sectionId": "section_victim"
+      },
+      {
+        "id": "field_victim_neighborhood",
+        "version": "1.0",
+        "index": 15,
+        "label": "BAIRRO DA VÍTIMA",
+        "type": "text",
+        "placeholder": "Nome do bairro",
+        "description": null,
+        "options": [],
+        "allowOther": false,
+        "required": false,
+        "sectionId": "section_victim"
+      },
+      {
+        "id": "field_victim_city",
+        "version": "1.0",
+        "index": 16,
+        "label": "MUNICÍPIO / CIDADE DA VÍTIMA",
+        "type": "text",
+        "placeholder": "Cidade",
+        "description": null,
+        "options": [],
+        "allowOther": false,
+        "required": false,
+        "sectionId": "section_victim"
+      },
+      {
+        "id": "field_victim_state",
+        "version": "1.0",
+        "index": 17,
+        "label": "ESTADO (UF) DA VÍTIMA",
+        "type": "text",
+        "placeholder": "MG",
+        "description": null,
+        "options": [],
+        "allowOther": false,
+        "required": false,
+        "sectionId": "section_victim"
+      },
+      {
+        "id": "field_6",
+        "version": "1.0",
+        "index": 18,
+        "label": "OCUPAÇÃO DA VÍTIMA",
+        "type": "text",
+        "placeholder": "Profissão / Ocupação",
+        "description": null,
+        "options": [],
+        "allowOther": false,
+        "required": false,
+        "sectionId": "section_victim"
+      },
+      {
+        "id": "field_10",
+        "version": "1.0",
+        "index": 19,
+        "label": "SEXO DA VÍTIMA",
+        "type": "select",
+        "description": null,
+        "options": [
+          "FEMININO",
+          "MASCULINO",
+          "NÃO IDENTIFICADO / OUTRO"
+        ],
+        "allowOther": false,
+        "required": false,
+        "sectionId": "section_victim"
+      },
+      {
         "id": "field_8",
         "version": "1.0",
-        "index": 8,
-        "label": "ESCOLARIDADE DA VÍTIMA",
+        "index": 20,
+        "label": "GRAU DE ESCOLARIDADE DA VÍTIMA",
         "type": "select",
         "description": null,
         "options": [
@@ -148,9 +310,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "ENSINO MÉDIO COMPLETO",
           "ENSINO SUPERIOR INCOMPLETO",
           "ENSINO SUPERIOR COMPLETO",
-          "MESTRADO",
-          "DOUTORADO",
-          "IGNORADO",
+          "PÓS-GRADUAÇÃO / MESTRADO / DOUTORADO",
           "OUTROS"
         ],
         "allowOther": false,
@@ -160,33 +320,17 @@ export const FORM_SECTIONS: FormSection[] = [
       {
         "id": "field_9",
         "version": "1.0",
-        "index": 9,
+        "index": 21,
         "label": "COR / RAÇA DA VÍTIMA",
         "type": "select",
         "description": null,
         "options": [
-          "AMARELO",
-          "BRANCO",
-          "PRETO",
-          "PARDO",
+          "AMARELA",
+          "BRANCA",
           "INDÍGENA",
-          "IGNORADA"
-        ],
-        "allowOther": false,
-        "required": false,
-        "sectionId": "section_victim"
-      },
-      {
-        "id": "field_10",
-        "version": "1.0",
-        "index": 10,
-        "label": "SEXO DA VÍTIMA",
-        "type": "select",
-        "description": null,
-        "options": [
-          "FEMININO",
-          "MASCULINO",
-          "NÃO IDENTIFICADO"
+          "PARDA",
+          "PRETA",
+          "PREFIRO NÃO INFORMAR"
         ],
         "allowOther": false,
         "required": false,
@@ -195,19 +339,18 @@ export const FORM_SECTIONS: FormSection[] = [
       {
         "id": "field_11",
         "version": "1.0",
-        "index": 11,
+        "index": 22,
         "label": "ESTADO CIVIL DA VÍTIMA",
         "type": "select",
         "description": null,
         "options": [
-          "CASADO",
-          "DIVORCIADO",
-          "SEPARADO JUDICIALMENTE",
-          "SOLTEIRO",
-          "VIÚVO",
+          "SOLTEIRA(O)",
+          "CASADA(O)",
           "UNIÃO ESTÁVEL",
-          "NÃO DECLARADO",
-          "IGNORADO"
+          "SEPARADA(O) JUDICIALMENTE",
+          "DIVORCIADA(O)",
+          "VIÚVA(O)",
+          "NÃO DECLARADO"
         ],
         "allowOther": false,
         "required": false,
@@ -216,16 +359,18 @@ export const FORM_SECTIONS: FormSection[] = [
       {
         "id": "field_12",
         "version": "1.0",
-        "index": 12,
-        "label": "VÍTIMA DECLAROU ORIENTAÇÃO SEXUAL",
+        "index": 23,
+        "label": "ORIENTAÇÃO SEXUAL DA VÍTIMA (COM DERIVATIVAS)",
         "type": "select",
         "description": null,
         "options": [
-          "NÃO",
-          "SIM, HETEROSSEXUAL",
-          "SIM, HOMOSSEXUAL",
-          "SIM, BISSEXUAL",
-          "SIM, ASSEXUAL"
+          "HETEROSSEXUAL",
+          "HOMOSSEXUAL (LÉSBICA / GAY)",
+          "BISSEXUAL",
+          "PANSEXUAL",
+          "ASSEXUAL",
+          "OUTRA ORIENTAÇÃO",
+          "PREFIRO NÃO DECLARAR"
         ],
         "allowOther": false,
         "required": false,
@@ -234,22 +379,21 @@ export const FORM_SECTIONS: FormSection[] = [
       {
         "id": "field_13",
         "version": "1.0",
-        "index": 13,
-        "label": "VÍTIMA DECLAROU IDENTIDADE DE GÊNERO",
+        "index": 24,
+        "label": "IDENTIDADE DE GÊNERO DA VÍTIMA",
         "type": "select",
         "description": null,
         "options": [
-          "NÃO",
-          "SIM, TRAVESTI",
-          "SIM, MULHER TRANSEXUAL",
-          "SIM, HOMEM TRANSEXUAL",
-          "SIM, INTERSEXUAL",
-          "SIM, NÃO-BINÁRIO",
-          "SIM, QUEER",
-          "SIM, MULHER CISGÊNERO",
-          "SIM, HOMEM CISGÊNERO",
-          "NÃO SE APLICA",
-          "IGNORADO"
+          "MULHER CISGÊNERO",
+          "HOMEM CISGÊNERO",
+          "MULHER TRANSEXUAL / TRANSGÊNERO",
+          "HOMEM TRANSEXUAL / TRANSGÊNERO",
+          "TRAVESTI",
+          "NÃO-BINÁRIO",
+          "INTERSEXUAL",
+          "QUEER",
+          "OUTRA IDENTIDADE",
+          "PREFIRO NÃO DECLARAR"
         ],
         "allowOther": false,
         "required": false,
@@ -258,53 +402,16 @@ export const FORM_SECTIONS: FormSection[] = [
       {
         "id": "field_14",
         "version": "1.0",
-        "index": 14,
+        "index": 25,
         "label": "NACIONALIDADE DA VÍTIMA (se necessário, especifique em outro)",
         "type": "checkbox",
         "description": null,
         "options": [
           "BRASILEIRA",
           "ESTRANGEIRA",
-          "NATURALIZADA",
-          "IGNORADA"
+          "NATURALIZADA"
         ],
         "allowOther": true,
-        "required": false,
-        "sectionId": "section_victim"
-      },
-      {
-        "id": "field_15",
-        "version": "1.0",
-        "index": 15,
-        "label": "ENDEREÇO DA VÍTIMA",
-        "type": "text",
-        "description": null,
-        "options": [],
-        "allowOther": false,
-        "required": false,
-        "sectionId": "section_victim"
-      },
-      {
-        "id": "field_16",
-        "version": "1.0",
-        "index": 16,
-        "label": "TELEFONE DA VÍTIMA",
-        "type": "text",
-        "description": null,
-        "options": [],
-        "allowOther": false,
-        "required": false,
-        "sectionId": "section_victim"
-      },
-      {
-        "id": "field_17",
-        "version": "1.0",
-        "index": 17,
-        "label": "E-MAIL DA VÍTIMA",
-        "type": "text",
-        "description": null,
-        "options": [],
-        "allowOther": false,
         "required": false,
         "sectionId": "section_victim"
       }
@@ -314,46 +421,7 @@ export const FORM_SECTIONS: FormSection[] = [
     "id": "section_author",
     "title": "2. DADOS DO AUTOR",
     "badge": "Qualificação",
-    "description": "Qualificação completa do autor da agressão ou ameaça.",
     "fields": [
-      {
-        "id": "field_19",
-        "version": "1.0",
-        "index": 19,
-        "label": "GRAU DA LESÃO",
-        "type": "select",
-        "description": null,
-        "options": [
-          "FATAL",
-          "LEVE",
-          "GRAVES OU INCONSCIENTE",
-          "SEM LESÕES APARENTES",
-          "GRAU DA LESÃO - IGNORADO"
-        ],
-        "allowOther": false,
-        "required": false,
-        "sectionId": "section_author"
-      },
-      {
-        "id": "field_20",
-        "version": "1.0",
-        "index": 20,
-        "label": "PRISÃO APREENSÃO",
-        "type": "select",
-        "description": null,
-        "options": [
-          "FLAGRANTE DE ATO INFRACIONAL",
-          "FLAGRANTE DE CRIME / CONTRAVENÇÃO",
-          "MANDADO JUDICIAL",
-          "RECAPTURA",
-          "SEM PRISÃO",
-          "TCO / FLAGRANTE INFRAÇÃO DE MENOR POTENCIAL OFENSIVO",
-          "OUTRAS - PRISÃO / APREENSÃO"
-        ],
-        "allowOther": false,
-        "required": false,
-        "sectionId": "section_author"
-      },
       {
         "id": "field_21",
         "version": "1.0",
@@ -535,8 +603,7 @@ export const FORM_SECTIONS: FormSection[] = [
         "options": [
           "BRASILEIRA",
           "ESTRANGEIRA",
-          "NATURALIZADA",
-          "IGNORADA"
+          "NATURALIZADA"
         ],
         "allowOther": true,
         "required": false,
@@ -590,18 +657,16 @@ export const FORM_SECTIONS: FormSection[] = [
         "id": "field_36",
         "version": "1.0",
         "index": 36,
-        "label": "PARA PREENCHIMENTO DO PROFISSIONAL",
+        "label": "COMO VOCÊ ESTÁ RESPONDENDO A ESTE QUESTIONÁRIO?",
         "type": "select",
         "description": null,
         "options": [
-          "Vítima respondeu a este formulário sem ajuda profissional",
-          "Vítima respondeu a este formulário com auxílio profissional",
-          "Vítima não teve condições de responder a este formulário",
-          "Vítima recusou-se a preencher o formulário",
-          "Terceiro comunicante respondeu a este formulário"
+          "Vítima respondendo por conta própria (sem auxílio)",
+          "Vítima respondendo com auxílio de profissional / equipe",
+          "Terceiro comunicante respondendo pelo formulário"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -618,7 +683,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não"
         ],
         "allowOther": true,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -640,7 +705,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Nenhuma agressão física"
         ],
         "allowOther": true,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -659,7 +724,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Nenhuma agressão física"
         ],
         "allowOther": true,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -675,7 +740,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Prefiro não informar"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -691,7 +756,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não sei"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -712,7 +777,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Nenhum comportamento de ciúme excessivo ou controle"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -729,7 +794,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não, nunca registrei ocorrência ou solicitei medida protetiva"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -745,7 +810,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não sei"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -761,7 +826,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não sei"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -779,7 +844,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não sei"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -796,7 +861,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não sei"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -813,7 +878,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não sei"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -829,7 +894,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não sei"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -846,7 +911,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Prefiro não informar"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -866,7 +931,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não sei"
         ],
         "allowOther": true,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -881,7 +946,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -898,7 +963,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -914,7 +979,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não possuo filhos"
         ],
         "allowOther": true,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -931,7 +996,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não se aplica"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -947,7 +1012,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não se aplica"
         ],
         "allowOther": true,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -964,7 +1029,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não se aplica"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -981,7 +1046,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não se aplica"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -998,7 +1063,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não sofri violência nesses períodos"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -1014,7 +1079,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não se aplica"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -1030,7 +1095,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não sei"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -1050,7 +1115,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Prefiro não informar"
         ],
         "allowOther": true,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -1069,7 +1134,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Prefiro não informar"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -1087,7 +1152,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não sei"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -1103,7 +1168,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Cedida ou \"de favor\". Por quem? (Especificar em outro)"
         ],
         "allowOther": true,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -1118,7 +1183,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -1135,7 +1200,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Prefiro não informar"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {
@@ -1150,7 +1215,7 @@ export const FORM_SECTIONS: FormSection[] = [
           "Não desejo o abrigamento temporário"
         ],
         "allowOther": false,
-        "required": false,
+        "required": true,
         "sectionId": "section_risk"
       },
       {

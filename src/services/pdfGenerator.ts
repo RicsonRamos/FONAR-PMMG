@@ -368,7 +368,8 @@ export async function generateSubmissionPdf(
   currentY -= 20;
 
   // --- SEÇÃO DE INTEGRIDADE E AUDITORIA FORENSE ---
-  checkPageBreak(90);
+  const auditBoxHeight = 128;
+  checkPageBreak(auditBoxHeight + 35);
   currentY -= 8;
   currentPage.drawRectangle({
     x: MARGIN_LEFT,
@@ -388,33 +389,76 @@ export async function generateSubmissionPdf(
 
   currentPage.drawRectangle({
     x: MARGIN_LEFT,
-    y: currentY - 60,
+    y: currentY - auditBoxHeight,
     width: CONTENT_WIDTH,
-    height: 60,
+    height: auditBoxHeight,
     color: COLOR_GRAY_BG,
     borderColor: COLOR_GRAY_BORDER,
     borderWidth: 1
   });
 
-  currentPage.drawText('SNAPSHOT SHA-256:', { x: MARGIN_LEFT + 8, y: currentY - 13, size: 7.5, font: fontBold, color: COLOR_MUTED });
-  currentPage.drawText(hashes.snapshot_sha256, { x: MARGIN_LEFT + 120, y: currentY - 13, size: 7, font: fontMono, color: COLOR_TEXT });
+  const ipText = snapshot.technical.ip_address || 'Não detectado / Rede local';
+  const locText = snapshot.technical.location_summary || snapshot.technical.timezone || 'Não informada';
+  const rawDevice = snapshot.technical.device_summary || snapshot.technical.user_agent || 'Dispositivo Web';
+  const deviceText = rawDevice.length > 75 ? rawDevice.substring(0, 72) + '...' : rawDevice;
 
-  currentPage.drawText('JSON CANÔNICO SHA-256:', { x: MARGIN_LEFT + 8, y: currentY - 26, size: 7.5, font: fontBold, color: COLOR_MUTED });
-  currentPage.drawText(hashes.canonical_json_sha256, { x: MARGIN_LEFT + 120, y: currentY - 26, size: 7, font: fontMono, color: COLOR_TEXT });
+  const labelX = MARGIN_LEFT + 8;
+  const valueX = MARGIN_LEFT + 125;
+  let auditY = currentY - 13;
 
-  currentPage.drawText('HASH CHAIN AUDIT:', { x: MARGIN_LEFT + 8, y: currentY - 39, size: 7.5, font: fontBold, color: COLOR_MUTED });
-  currentPage.drawText(hashes.audit_chain_hash, { x: MARGIN_LEFT + 120, y: currentY - 39, size: 7, font: fontMono, color: COLOR_TEXT });
+  // 1. Horário Local
+  currentPage.drawText('HORÁRIO LOCAL:', { x: labelX, y: auditY, size: 7.2, font: fontBold, color: COLOR_MUTED });
+  currentPage.drawText(snapshot.timestamps.submitted_at_local, { x: valueX, y: auditY, size: 7, font: fontRegular, color: COLOR_TEXT });
+  auditY -= 12;
 
+  // 2. Horário UTC
+  currentPage.drawText('HORÁRIO UTC:', { x: labelX, y: auditY, size: 7.2, font: fontBold, color: COLOR_MUTED });
+  currentPage.drawText(snapshot.timestamps.submitted_at_utc, { x: valueX, y: auditY, size: 7, font: fontMono, color: COLOR_TEXT });
+  auditY -= 12;
+
+  // 3. IP de Origem
+  currentPage.drawText('IP DE ORIGEM:', { x: labelX, y: auditY, size: 7.2, font: fontBold, color: COLOR_MUTED });
+  currentPage.drawText(ipText, { x: valueX, y: auditY, size: 7, font: fontMono, color: COLOR_TEXT });
+  auditY -= 12;
+
+  // 4. Localização
+  currentPage.drawText('LOCALIZAÇÃO:', { x: labelX, y: auditY, size: 7.2, font: fontBold, color: COLOR_MUTED });
+  currentPage.drawText(locText, { x: valueX, y: auditY, size: 7, font: fontRegular, color: COLOR_TEXT });
+  auditY -= 12;
+
+  // 5. Dispositivo
+  currentPage.drawText('DISPOSITIVO:', { x: labelX, y: auditY, size: 7.2, font: fontBold, color: COLOR_MUTED });
+  currentPage.drawText(deviceText, { x: valueX, y: auditY, size: 7, font: fontRegular, color: COLOR_TEXT });
+  auditY -= 12;
+
+  // 6. Snapshot SHA-256
+  currentPage.drawText('SNAPSHOT SHA-256:', { x: labelX, y: auditY, size: 7.2, font: fontBold, color: COLOR_MUTED });
+  currentPage.drawText(hashes.snapshot_sha256, { x: valueX, y: auditY, size: 7, font: fontMono, color: COLOR_TEXT });
+  auditY -= 12;
+
+  // 7. JSON Canônico SHA-256
+  currentPage.drawText('JSON CANÔNICO SHA-256:', { x: labelX, y: auditY, size: 7.2, font: fontBold, color: COLOR_MUTED });
+  currentPage.drawText(hashes.canonical_json_sha256, { x: valueX, y: auditY, size: 7, font: fontMono, color: COLOR_TEXT });
+  auditY -= 12;
+
+  // 8. Hash Chain Audit
+  currentPage.drawText('HASH CHAIN AUDIT:', { x: labelX, y: auditY, size: 7.2, font: fontBold, color: COLOR_MUTED });
+  currentPage.drawText(hashes.audit_chain_hash, { x: valueX, y: auditY, size: 7, font: fontMono, color: COLOR_TEXT });
+  auditY -= 13;
+
+  // 9. Nota de integridade
   currentPage.drawText(
     '* NOTA DE INTEGRIDADE: O SHA-256 deste PDF é calculado após sua compilação e inserido no MANIFEST.json correspondente.',
     {
-      x: MARGIN_LEFT + 8,
-      y: currentY - 52,
+      x: labelX,
+      y: auditY,
       size: 6.5,
       font: fontRegular,
       color: COLOR_MUTED
     }
   );
+
+  currentY -= auditBoxHeight + 15;
 
   // --- NUMERAÇÃO DE PÁGINAS E RODAPÉ EM TODAS AS PÁGINAS ---
   const totalPages = doc.getPageCount();

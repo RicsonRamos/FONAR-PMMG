@@ -29,6 +29,9 @@ export interface TechnicalMetadata {
   screen_resolution: string;
   timezone: string;
   timezone_offset_minutes: number;
+  device_summary?: string;
+  ip_address?: string;
+  location_summary?: string;
 }
 
 export interface AuditEvent {

@@ -11,6 +11,7 @@ import {
   TechnicalMetadata
 } from '../types/snapshot';
 import { sha256 } from './crypto';
+import { ClientNetworkInfo, detectDeviceSummary } from './deviceInfo';
 
 export interface BuildSnapshotParams {
   protocol: string;
@@ -20,6 +21,7 @@ export interface BuildSnapshotParams {
   declarationConfirmed: boolean;
   declarationConfirmedAtUtc: string;
   auditEvents: AuditEvent[];
+  clientNetworkInfo?: ClientNetworkInfo;
 }
 
 /**
@@ -73,13 +75,24 @@ export async function buildSubmissionSnapshot(params: BuildSnapshotParams): Prom
   };
 
   // 3. Informações técnicas estritamente justificadas (sem fingerprinting invasivo)
+  const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'NodeJS/Test';
+  const deviceSummary =
+    params.clientNetworkInfo?.device || detectDeviceSummary(userAgent);
+  const ipAddress =
+    params.clientNetworkInfo?.ip || 'Não detectado / Rede local';
+  const locationSummary =
+    params.clientNetworkInfo?.location || (Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo');
+
   const technical: TechnicalMetadata = {
-    user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'NodeJS/Test',
+    user_agent: userAgent,
     language: typeof navigator !== 'undefined' ? navigator.language : 'pt-BR',
     screen_resolution:
       typeof window !== 'undefined' ? `${window.screen?.width || 0}x${window.screen?.height || 0}` : 'Unknown',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo',
-    timezone_offset_minutes: new Date().getTimezoneOffset()
+    timezone_offset_minutes: new Date().getTimezoneOffset(),
+    device_summary: deviceSummary,
+    ip_address: ipAddress,
+    location_summary: locationSummary
   };
 
   // 4. Congelar perguntas, redações, opções e respostas

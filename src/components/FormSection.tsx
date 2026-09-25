@@ -7,6 +7,7 @@ interface FormSectionProps {
   section: FormSectionType;
   formValues: FormValues;
   onChangeField: (fieldId: string, value: string | string[]) => void;
+  onAddressAutofill?: (address: { street: string; neighborhood: string; city: string; state: string }) => void;
   errors: Record<string, string>;
   defaultOpen?: boolean;
 }
@@ -15,6 +16,7 @@ export const FormSectionComponent: React.FC<FormSectionProps> = ({
   section,
   formValues,
   onChangeField,
+  onAddressAutofill,
   errors,
   defaultOpen = true
 }) => {
@@ -54,12 +56,14 @@ export const FormSectionComponent: React.FC<FormSectionProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
             {section.fields.map(field => {
-              // Campos de largura total se for textarea ou pergunta de risco longa
+              // Campos de largura total se for textarea, checkbox, endereço ou pergunta longa
               const isFullWidth =
                 field.type === 'textarea' ||
                 field.type === 'checkbox' ||
                 field.type === 'radio' ||
-                field.label.length > 50;
+                field.id.includes('street') ||
+                field.id.includes('social_name') ||
+                field.label.length > 45;
 
               return (
                 <div key={field.id} className={isFullWidth ? 'md:col-span-2' : ''}>
@@ -67,6 +71,7 @@ export const FormSectionComponent: React.FC<FormSectionProps> = ({
                     field={field}
                     value={formValues[field.id] || (field.type === 'checkbox' ? [] : '')}
                     onChange={val => onChangeField(field.id, val)}
+                    onAddressAutofill={onAddressAutofill}
                     error={errors[field.id]}
                   />
                 </div>

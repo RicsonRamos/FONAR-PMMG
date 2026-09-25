@@ -4,41 +4,43 @@ export interface LegalNoticeConfig {
   title: string;
   text: string;
   juridicalValidationRequired?: boolean;
+  checkboxLabel?: string;
 }
 
 export const LEGAL_TEXTS = {
   auxiliaryDisclaimer: {
     id: 'AUXILIARY_TOOL_DISCLAIMER',
-    version: '1.0.0',
-    title: 'Aviso Importante — Ferramenta Auxiliar',
-    text: 'Este formulário é uma ferramenta auxiliar para coleta e organização preliminar das informações. A submissão deste formulário NÃO substitui o registro oficial no sistema institucional correspondente (REDS). O preenchimento oficial deverá ser realizado manualmente pelo responsável no sistema institucional.',
-    juridicalValidationRequired: true
+    version: '1.1.0',
+    title: 'Aviso Importante à Cidadã — Formulário Seguro',
+    text: 'Este formulário é um canal seguro para acolhimento e coleta preliminar das informações de violência doméstica. O preenchimento auxilia a Polícia Militar de Minas Gerais no registro oficial da ocorrência (REDS) e na imediata avaliação de risco para medidas protetivas e de segurança. Caso você esteja em situação de perigo imediato, ligue 190 (Polícia Militar).',
+    juridicalValidationRequired: false
   },
   purposeNotice: {
     id: 'COLLECTION_PURPOSE_NOTICE',
-    version: '1.0.0',
+    version: '1.1.0',
     title: 'Finalidade da Coleta',
-    text: 'Recurso desenvolvido para apoio aos policiais militares e equipes de atendimento na coleta de dados para os casos em que a vítima de violência doméstica não acompanhar a ocorrência ou não estiver no local de registro inicial, em conformidade com a Instrução de Serviço nº 01/2026 - 16º BPM.',
-    juridicalValidationRequired: true
+    text: 'Registro antecipado e acolhedor de informações para atendimento e proteção à mulher vítima de violência doméstica, em conformidade com a Instrução de Serviço nº 01/2026 - 16º BPM e a Lei Maria da Penha (Lei nº 11.340/2006).',
+    juridicalValidationRequired: false
   },
   privacyNotice: {
     id: 'PRIVACY_LGPD_NOTICE',
-    version: '1.0.0',
-    title: 'Privacidade e Proteção de Dados (LGPD)',
-    text: 'As informações registradas são mantidas sob sigilo institucional e protegidas nos termos da Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Os dados não são persistidos no navegador (sem uso de cookies, localStorage ou IndexedDB) e destinam-se exclusivamente à guarda do pacote de auditoria no Google Drive e comunicação interna via e-mail corporativo. [VALIDAR JURIDICAMENTE]',
-    juridicalValidationRequired: true
+    version: '1.1.0',
+    title: 'Privacidade e Proteção de Dados',
+    text: 'Suas informações são confidenciais e protegidas pela Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Os dados digitados não são gravados no seu aparelho (sem cookies ou histórico local). Ao sair da página ou enviar, nada permanece salvo no seu celular ou computador.',
+    juridicalValidationRequired: false
   },
   contactNotice: {
     id: 'CONTACT_CHANNEL_NOTICE',
-    version: '1.0.0',
-    title: 'Canal de Contato Institucional',
-    text: 'Em caso de dúvidas, orientações ou problemas operacionais, contatar a coordenação da 1ª Cia PM Ind PVD (RMBH) ou a Seção de Emprego Operacional (P3 / 16º BPM).'
+    version: '1.1.0',
+    title: 'Canais de Emergência e Atendimento',
+    text: 'Emergência Policial: Ligue 190 • Central de Atendimento à Mulher: Ligue 180 • Disque Denúncia: Ligue 181.'
   },
   declaration: {
     id: 'FINAL_FIDELITY_DECLARATION',
-    version: '1.0.0',
+    version: '1.1.0',
     title: 'Declaração de Fidedignidade das Informações',
-    text: 'Declaro, para os devidos fins de registro técnico e organização das informações, que os dados constantes neste formulário foram coletados com fidedignidade com base nas declarações apresentadas e nos elementos colhidos durante a Primeira Resposta. [VALIDAR JURIDICAMENTE]',
-    checkboxLabel: 'Confirmo a declaração acima e atesto a veracidade técnica dos dados apresentados.'
+    text: 'Prezado(a) cidadão(ã), omitir a verdade ou fazer declaração falsa em documento público ou particular é crime previsto no art. 299 do Código Penal Brasileiro (Lei nº 2.848/1940 - CPB), sob pena de reclusão de 1 a 5 anos e multa (se documento público) ou reclusão de 1 a 3 anos e multa (se documento particular). Ao prosseguir, declaro sob as penas da lei a veracidade de todas as informações prestadas.',
+    checkboxLabel: 'Confirmo a veracidade de todas as informações prestadas e estou ciente da responsabilidade penal prevista no art. 299 do Código Penal Brasileiro (CPB).'
   }
 } as const;
+

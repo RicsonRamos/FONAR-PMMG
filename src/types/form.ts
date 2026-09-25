@@ -25,7 +25,7 @@ export interface FormQuestion {
 export interface FormSection {
   id: string;
   title: string;
-  description?: string;
+  description?: string | null;
   badge?: string;
   fields: FormQuestion[];
 }

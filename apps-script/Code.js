@@ -7,7 +7,7 @@
  * 2. Validação rigorosa de payload e schema
  * 3. Prevenção de concorrência e idempotência via ScriptLock e verificação de protocolo
  * 4. Verificação independente de integridade SHA-256
- * 5. Arquivamento estruturado no Google Drive (Auditoria/YYYY/Formulario-X/PROTOCOL/)
+ * 5. Arquivamento estruturado no Google Drive (Auditoria/YYYY/PROTOCOL/)
  * 6. Despacho de notificação institucional via Gmail
  * 7. Resposta JSON padronizada
  */
@@ -237,11 +237,8 @@ function getOrCreateSubmissionFolder(config, protocol) {
   var currentYear = new Date().getUTCFullYear().toString();
   var yearFolder = getOrCreateSubfolder(auditFolder, currentYear);
 
-  // 3. Pasta do Formulário (ex: FONAR)
-  var formFolder = getOrCreateSubfolder(yearFolder, config.FORM_NAME);
-
-  // 4. Pasta da Submissão (ex: FORM-2026-000123)
-  var submissionFolder = getOrCreateSubfolder(formFolder, protocol);
+  // 3. Pasta da Submissão (o formulário em si, ex: FORM-2026-000123)
+  var submissionFolder = getOrCreateSubfolder(yearFolder, protocol);
 
   return submissionFolder;
 }
