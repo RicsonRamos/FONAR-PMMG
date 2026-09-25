@@ -1,0 +1,31 @@
+# Logs and dependencies
+node_modules/
+dist/
+dist-ssr/
+*.local
+.npm
+.DS_Store
+
+# Temporary scratch and extraction files
+*.txt
+google_form_parsed.json
+formulário de ava.html
+ilide.info-*.pdf
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Tests
+coverage/
