@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { FORM_SECTIONS, ALL_FORM_FIELDS } from './config/formSchema';
 import { SYSTEM_METADATA } from './config/version';
+import { generateDeclarationText } from './config/legalTexts';
 import { Header } from './components/Header';
 import { NoticesBanner } from './components/NoticesBanner';
 import { FormSectionComponent } from './components/FormSection';
@@ -412,6 +413,12 @@ export const App: React.FC = () => {
       // Obter informações do cliente (rede, IP, localização e dispositivo)
       const netInfo = clientNetworkInfo || await fetchClientNetworkInfo();
 
+      // Construir texto exato da declaração confirmada
+      const victimName = typeof formValues['field_4'] === 'string' ? formValues['field_4'] : '';
+      const dateStr = typeof formValues['field_0'] === 'string' ? formValues['field_0'] : '';
+      const timeStr = typeof formValues['field_1'] === 'string' ? formValues['field_1'] : '';
+      const declarationText = generateDeclarationText({ victimName, dateStr, timeStr });
+
       // Snapshot Imutável em RAM
       const snapshot = await buildSubmissionSnapshot({
         protocol,
@@ -420,6 +427,7 @@ export const App: React.FC = () => {
         formValues,
         declarationConfirmed: true,
         declarationConfirmedAtUtc: declarationConfirmedAt,
+        declarationText,
         auditEvents: currentEvents,
         clientNetworkInfo: netInfo
       });

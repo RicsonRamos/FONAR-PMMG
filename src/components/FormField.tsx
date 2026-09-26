@@ -78,10 +78,8 @@ export const FormField: React.FC<FormFieldProps> = ({ field, value, onChange, on
     } else if (idLower.includes('cep') || labelLower.includes('cep')) {
       const formatted = formatCep(raw);
       onChange(formatted);
-      const clean = formatted.replace(/\D/g, '');
-      if (clean.length === 8) {
-        fetchViaCep(clean);
-      }
+      // Privacidade: Não dispara consulta externa automática a terceiros.
+      // O usuário decide voluntariamente se deseja clicar no botão "Buscar" ou preencher manualmente.
     } else {
       onChange(raw);
     }
@@ -212,6 +210,11 @@ export const FormField: React.FC<FormFieldProps> = ({ field, value, onChange, on
               </button>
             )}
           </div>
+          {isCepField && !cepMessage && (
+            <p className="text-[11px] text-gray-500">
+              Preenchimento do endereço pode ser manual ou consultado voluntariamente via botão &ldquo;Buscar&rdquo;.
+            </p>
+          )}
           {cepMessage && (
             <p
               className={`text-xs flex items-center gap-1.5 font-medium ${

@@ -72,7 +72,23 @@ function verifyPackage(targetDir) {
   for (const filename of filenames) {
     const fileEntry = manifest.files[filename];
     const expectedHash = fileEntry.sha256 ? fileEntry.sha256.toLowerCase() : '';
-    const filePath = path.join(targetDir, filename);
+
+    // Sanitização contra Path Traversal
+    const normalizedName = path.basename(filename);
+    if (filename !== normalizedName || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      console.log(`${RED}✗ [CAMINHO INVÁLIDO / PATH TRAVERSAL DETECTADO] ${filename}${RESET}`);
+      console.log(`  Tentativa de escape de diretório bloqueada.`);
+      allValid = false;
+      continue;
+    }
+
+    const resolvedTarget = path.resolve(targetDir);
+    const filePath = path.resolve(resolvedTarget, normalizedName);
+    if (!filePath.startsWith(resolvedTarget + path.sep) && filePath !== resolvedTarget) {
+      console.log(`${RED}✗ [VIOLAÇÃO DE DIRETÓRIO] O arquivo ${filename} tenta escapar do diretório da evidência.${RESET}`);
+      allValid = false;
+      continue;
+    }
 
     if (!fs.existsSync(filePath)) {
       console.log(`${RED}✗ [AUSENTE] ${filename}${RESET}`);
@@ -98,9 +114,9 @@ function verifyPackage(targetDir) {
   }
 
   // Verificação complementar da Hash Chain no JSON
-  const jsonFiles = filenames.filter(f => f.endsWith('.json') && f !== 'MANIFEST.json');
+  const jsonFiles = filenames.filter(f => f.endsWith('.json') && f !== 'MANIFEST.json' && path.basename(f) === f);
   if (jsonFiles.length > 0) {
-    const jsonPath = path.join(targetDir, jsonFiles[0]);
+    const jsonPath = path.resolve(path.resolve(targetDir), path.basename(jsonFiles[0]));
     try {
       const jsonContent = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
       if (jsonContent.audit_trail && Array.isArray(jsonContent.audit_trail.events)) {

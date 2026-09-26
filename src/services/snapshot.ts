@@ -20,6 +20,7 @@ export interface BuildSnapshotParams {
   formValues: FormValues;
   declarationConfirmed: boolean;
   declarationConfirmedAtUtc: string;
+  declarationText?: string;
   auditEvents: AuditEvent[];
   clientNetworkInfo?: ClientNetworkInfo;
 }
@@ -64,11 +65,12 @@ export async function buildSubmissionSnapshot(params: BuildSnapshotParams): Prom
     }
   ];
 
-  // 2. Congelar declaração
-  const declarationHash = await sha256(LEGAL_TEXTS.declaration.text);
+  // 2. Congelar declaração individualizada exatamente como apresentada e assinada
+  const effectiveDeclarationText = params.declarationText || LEGAL_TEXTS.declaration.text;
+  const declarationHash = await sha256(effectiveDeclarationText);
   const declaration: FrozenDeclaration = {
     version: LEGAL_TEXTS.declaration.version,
-    text: LEGAL_TEXTS.declaration.text,
+    text: effectiveDeclarationText,
     confirmed: params.declarationConfirmed,
     confirmed_at_utc: params.declarationConfirmedAtUtc,
     sha256: declarationHash

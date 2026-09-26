@@ -36,8 +36,10 @@ export function detectDeviceSummary(userAgent: string): string {
 }
 
 /**
- * Consulta segura e com timeout para obter IP e Localização aproximada.
- * Possui fallback gracioso para nunca travar ou atrasar a submissão.
+ * Resolução estritamente local e com Privacy by Design dos metadados técnicos.
+ * Em conformidade com a LGPD e o princípio da minimização, NENHUMA requisição
+ * a serviços terceiros de telemetria ou geolocalização externa (ex: ipwho.is, ipify.org)
+ * é executada pelo navegador, prevenindo o rastreamento ou vazamento do IP da vítima.
  */
 export async function fetchClientNetworkInfo(): Promise<ClientNetworkInfo> {
   const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
@@ -47,47 +49,8 @@ export async function fetchClientNetworkInfo(): Promise<ClientNetworkInfo> {
       ? Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo (UTC-03:00)'
       : 'America/Sao_Paulo';
 
-  // Tentativa 1: ipwho.is (CORS aberto, rápido e sem chave de API)
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2500);
-    const resp = await fetch('https://ipwho.is/', { signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (resp.ok) {
-      const data = await resp.json();
-      if (data.success !== false) {
-        const locParts = [data.city, data.region, data.country].filter(Boolean);
-        return {
-          ip: data.ip || 'Não detectado',
-          location: locParts.join(', ') || defaultTz,
-          device
-        };
-      }
-    }
-  } catch {
-    // Prossegue para o próximo fallback
-  }
-
-  // Tentativa 2: api.ipify.org
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-    const resp = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (resp.ok) {
-      const data = await resp.json();
-      return {
-        ip: data.ip || 'Não detectado',
-        location: defaultTz,
-        device
-      };
-    }
-  } catch {
-    // Falha silenciosa
-  }
-
   return {
-    ip: 'Não disponível no cliente (registro no servidor)',
+    ip: 'Privacidade Preservada (Sem telemetria externa)',
     location: defaultTz,
     device
   };

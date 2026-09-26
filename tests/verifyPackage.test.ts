@@ -79,4 +79,37 @@ describe('Geração de Pacote de Evidência e Verificação de Integridade Ponta
 
     expect(tamperedHash).not.toBe(originalHash);
   });
+
+  it('deve bloquear tentativa de path traversal em pacote com MANIFEST malicioso', async () => {
+    const fs = await import('node:fs');
+    const os = await import('node:os');
+    const path = await import('node:path');
+    const { execSync } = await import('node:child_process');
+
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fonar-traversal-test-'));
+    try {
+      const maliciousManifest = {
+        manifest_version: '1.0.0',
+        algorithm: 'SHA-256',
+        protocol: 'FORM-2026-000000',
+        evidence_id: 'EV-malicious',
+        generated_at_utc: new Date().toISOString(),
+        files: {
+          '../../etc/passwd': { sha256: 'a'.repeat(64), size_bytes: 100 }
+        }
+      };
+      fs.writeFileSync(path.join(tmpDir, 'MANIFEST.json'), JSON.stringify(maliciousManifest));
+      try {
+        execSync(`node tools/verify-package.js "${tmpDir}"`, { stdio: 'pipe' });
+        expect.fail('Deveria ter falhado ao detectar path traversal');
+      } catch (err: unknown) {
+        const execErr = err as { status: number; stdout: Buffer };
+        expect(execErr.status).toBe(2);
+        const stdout = execErr.stdout.toString();
+        expect(stdout).toContain('PATH TRAVERSAL DETECTADO');
+      }
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
 });

@@ -34,7 +34,7 @@ As configurações sensíveis ficam centralizadas nas **Propriedades do Script**
 
 | Propriedade | Valor de Exemplo | Descrição |
 | :--- | :--- | :--- |
-| `DRIVE_ROOT_FOLDER_ID` | `1a2B3c4D5e6F7g8H9...` | ID da pasta "Auditoria" criada no Google Drive |
+| `DRIVE_ROOT_FOLDER_ID` | `1zsYALz3PqCXj5ZQJBV3eFOzHW-K0ig8J` | ID da pasta "Auditoria" criada no Google Drive |
 | `EMAIL_DESTINATION` | `pvd16bpm@pmmg.mg.gov.br` | E-mail corporativo para receber alertas |
 | `FORM_NAME` | `FONAR` | Nome da subpasta dentro do ano no Drive |
 | `FORM_VERSION` | `1.0.0` | Versão do formulário |

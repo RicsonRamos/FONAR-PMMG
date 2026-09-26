@@ -22,10 +22,7 @@ export async function transmitEvidencePackage(
       evidence_id: pkg.evidence_id,
       timestamp_utc: new Date().toISOString(),
       drive_archived: true,
-      drive_folder_id: 'mock-folder-id-16bpm',
-      drive_folder_url: 'https://drive.google.com/drive/folders/mock',
-      email_sent: true,
-      email_destination: 'pvd16bpm@pmmg.mg.gov.br'
+      email_sent: true
     };
   }
 

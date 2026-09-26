@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Download, Copy, RefreshCw, FileText, Shield, ExternalLink, HardDrive, Mail } from 'lucide-react';
+import { CheckCircle2, Download, Copy, RefreshCw, FileText, Shield, HardDrive, Mail } from 'lucide-react';
 import { BackendResponse, EvidenceTransmissionPackage } from '../types/evidence';
 
 interface SubmissionStatusProps {
@@ -108,18 +108,8 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({ response, pk
             <div className="text-xs">
               <span className="font-bold text-gray-900 block">Google Drive</span>
               <span className="text-gray-600">
-                {response.drive_archived ? 'Arquivado na pasta de Auditoria' : 'Pendente de sincronização'}
+                {response.drive_archived ? 'Arquivado com segurança no repositório institucional' : 'Pendente de sincronização'}
               </span>
-              {response.drive_folder_url && (
-                <a
-                  href={response.drive_folder_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] text-[#A08F63] font-semibold hover:underline mt-1"
-                >
-                  Abrir Pasta <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
             </div>
           </div>
 

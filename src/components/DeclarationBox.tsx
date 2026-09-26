@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertCircle, ShieldAlert, FileText, Edit3 } from 'lucide-react';
-import { LEGAL_TEXTS } from '../config/legalTexts';
+import { LEGAL_TEXTS, generateDeclarationText } from '../config/legalTexts';
 import { FormValues } from '../types/form';
 
 interface DeclarationBoxProps {
@@ -24,18 +24,8 @@ export const DeclarationBox: React.FC<DeclarationBoxProps> = ({
   formValues = {},
   onEditStep
 }) => {
-  // Monta a data e hora legíveis
-  const now = new Date();
-  const displayDate = dateStr
-    ? dateStr.includes('-')
-      ? dateStr.split('-').reverse().join('/')
-      : dateStr
-    : now.toLocaleDateString('pt-BR');
-  const displayTime = timeStr || now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  const displayName = victimName && victimName.trim() ? victimName.trim().toUpperCase() : 'NOME DA CIDADÃ / VÍTIMA';
-
-  // Monta texto dinâmico da declaração conforme solicitado pelo usuário
-  const dynamicDeclarationText = `EU, ${displayName}, DECLARO QUE EM ${displayDate} ÀS ${displayTime}, PRESTEI AS INFORMAÇÕES REGISTRADAS NESTE FORMULÁRIO AUXILIAR DE PRIMEIRA RESPOSTA E AVALIAÇÃO DE RISCO (FONAR). CONFIRMO A VERACIDADE DAS INFORMAÇÕES PRESTADAS ACIMA E ESTOU CIENTE DE QUE OMITIR, EM DOCUMENTO PÚBLICO OU PARTICULAR, DECLARAÇÃO QUE DEVIA CONSTAR, OU NELE INSERIR OU FAZER DECLARAÇÃO FALSA OU DIVERSA DA QUE DEVIA SER ESCRITA, É CRIME PREVISTO NO ART. 299 DA LEI Nº 2.848/1940 (CÓDIGO PENAL BRASILEIRO - CPB), FICANDO O AUTOR SUJEITO À RECLUSÃO DE 1 A 5 ANOS E MULTA (SE O DOCUMENTO É PÚBLICO) E RECLUSÃO DE 1 A 3 ANOS E MULTA (SE O DOCUMENTO É PARTICULAR).`;
+  // Monta texto dinâmico da declaração de forma canônica
+  const dynamicDeclarationText = generateDeclarationText({ victimName, dateStr, timeStr });
 
   return (
     <div className="space-y-6">

@@ -19,7 +19,7 @@ function getAppConfig() {
   var scriptProps = PropertiesService.getScriptProperties();
   
   return {
-    DRIVE_ROOT_FOLDER_ID: scriptProps.getProperty('DRIVE_ROOT_FOLDER_ID') || '',
+    DRIVE_ROOT_FOLDER_ID: scriptProps.getProperty('DRIVE_ROOT_FOLDER_ID') || '1zsYALz3PqCXj5ZQJBV3eFOzHW-K0ig8J',
     EMAIL_DESTINATION: scriptProps.getProperty('EMAIL_DESTINATION') || 'pvd16bpm@pmmg.mg.gov.br',
     FORM_NAME: scriptProps.getProperty('FORM_NAME') || 'FONAR',
     FORM_VERSION: scriptProps.getProperty('FORM_VERSION') || '1.0.0',
@@ -124,6 +124,44 @@ function doPost(e) {
     var evidenceId = pkg.evidence_id.trim();
     var timestampUtc = new Date().toISOString();
 
+    // 4.1 Validação Estrita de Formato (Protocolo e Evidence ID)
+    if (!/^FORM-\d{4}-\d{6}$/.test(protocol)) {
+      return createJsonResponse({
+        status: 'ERROR',
+        message: 'Formato de protocolo inválido. Esperado: FORM-YYYY-NNNNNN.',
+        errors: ['INVALID_PROTOCOL_FORMAT']
+      }, 400);
+    }
+
+    if (!/^EV-[a-zA-Z0-9_-]{8,64}$/.test(evidenceId)) {
+      return createJsonResponse({
+        status: 'ERROR',
+        message: 'Formato de Evidence ID inválido.',
+        errors: ['INVALID_EVIDENCE_ID_FORMAT']
+      }, 400);
+    }
+
+    // 4.2 Validação de Nomes de Arquivos (Prevenção de Path Traversal e Injeção de Arquivos)
+    var expectedPdfFilename = protocol + '.pdf';
+    var expectedJsonFilename = protocol + '.json';
+    if (pkg.pdf_filename !== expectedPdfFilename || pkg.json_filename !== expectedJsonFilename || pkg.manifest_filename !== 'MANIFEST.json') {
+      return createJsonResponse({
+        status: 'ERROR',
+        message: 'Nomes de arquivos inconsistentes com o protocolo da submissão.',
+        errors: ['INVALID_FILENAMES']
+      }, 400);
+    }
+
+    // 4.3 Validação de Formato dos Hashes SHA-256 informados
+    var sha256Regex = /^[a-fA-F0-9]{64}$/;
+    if (pkg.pdf_sha256 && !sha256Regex.test(pkg.pdf_sha256)) {
+      return createJsonResponse({
+        status: 'ERROR',
+        message: 'Formato inválido do hash SHA-256 do PDF.',
+        errors: ['INVALID_PDF_HASH_FORMAT']
+      }, 400);
+    }
+
     // 5. Verificação de Idempotência (Evitar pacotes duplicados)
     var targetFolder = getOrCreateSubmissionFolder(config, protocol);
     var existingFiles = targetFolder.getFilesByName(pkg.manifest_filename);
@@ -136,15 +174,37 @@ function doPost(e) {
         evidence_id: evidenceId,
         timestamp_utc: timestampUtc,
         drive_archived: true,
-        drive_folder_id: targetFolder.getId(),
-        drive_folder_url: targetFolder.getUrl(),
-        email_sent: true,
-        email_destination: config.EMAIL_DESTINATION
+        email_sent: true
       }, 200);
     }
 
-    // 6. Verificação Independente de Hashes SHA-256 no Backend
-    var pdfBytes = Utilities.base64Decode(pkg.pdf_base64);
+    // 6. Decodificação e Validação de Magic Bytes do PDF (%PDF-)
+    var pdfBytes;
+    try {
+      pdfBytes = Utilities.base64Decode(pkg.pdf_base64);
+    } catch (b64Err) {
+      return createJsonResponse({
+        status: 'ERROR',
+        message: 'Falha ao decodificar Base64 do arquivo PDF.',
+        errors: ['BASE64_DECODE_ERROR']
+      }, 400);
+    }
+
+    if (!pdfBytes || pdfBytes.length < 5 ||
+        pdfBytes[0] !== 0x25 || // '%'
+        pdfBytes[1] !== 0x50 || // 'P'
+        pdfBytes[2] !== 0x44 || // 'D'
+        pdfBytes[3] !== 0x46 || // 'F'
+        pdfBytes[4] !== 0x2D) { // '-'
+      Logger.log('[FALHA MAGIC BYTES PDF] Arquivo não possui cabeçalho %PDF-');
+      return createJsonResponse({
+        status: 'ERROR',
+        message: 'O arquivo PDF enviado não possui assinatura binária válida (%PDF-).',
+        errors: ['INVALID_PDF_MAGIC_BYTES']
+      }, 400);
+    }
+
+    // Verificação Independente de Hashes SHA-256 no Backend
     var serverCalculatedPdfHash = computeSha256Hex(pdfBytes);
     var serverCalculatedJsonHash = computeSha256Hex(Utilities.newBlob(pkg.json_content).getBytes());
 
@@ -159,20 +219,18 @@ function doPost(e) {
 
     // 7. Gravação Atômica dos Arquivos no Google Drive
     // 7.1 Salvar PDF
-    var pdfBlob = Utilities.newBlob(pdfBytes, 'application/pdf', pkg.pdf_filename);
+    var pdfBlob = Utilities.newBlob(pdfBytes, 'application/pdf', expectedPdfFilename);
     var pdfFile = targetFolder.createFile(pdfBlob);
 
     // 7.2 Salvar JSON
-    var jsonBlob = Utilities.newBlob(pkg.json_content, 'application/json', pkg.json_filename);
+    var jsonBlob = Utilities.newBlob(pkg.json_content, 'application/json', expectedJsonFilename);
     var jsonFile = targetFolder.createFile(jsonBlob);
 
     // 7.3 Salvar MANIFEST
-    var manifestBlob = Utilities.newBlob(pkg.manifest_content, 'application/json', pkg.manifest_filename);
+    var manifestBlob = Utilities.newBlob(pkg.manifest_content, 'application/json', 'MANIFEST.json');
     var manifestFile = targetFolder.createFile(manifestBlob);
 
     var driveArchived = true;
-    var driveFolderId = targetFolder.getId();
-    var driveFolderUrl = targetFolder.getUrl();
 
     // 8. Despacho Secundário de E-mail via Gmail
     var emailSent = false;
@@ -186,7 +244,7 @@ function doPost(e) {
       emailSent = false;
     }
 
-    // 9. Retorno de Sucesso
+    // 9. Retorno de Sucesso (Omitindo URLs internas do Drive e e-mails por segurança e privacidade)
     return createJsonResponse({
       status: 'SUCCESS',
       message: 'Pacote de evidência arquivado com sucesso.',
@@ -194,10 +252,7 @@ function doPost(e) {
       evidence_id: evidenceId,
       timestamp_utc: timestampUtc,
       drive_archived: driveArchived,
-      drive_folder_id: driveFolderId,
-      drive_folder_url: driveFolderUrl,
-      email_sent: emailSent,
-      email_destination: config.EMAIL_DESTINATION
+      email_sent: emailSent
     }, 200);
 
   } catch (globalError) {
@@ -252,13 +307,33 @@ function getOrCreateSubfolder(parent, name) {
 }
 
 // ============================================================================
-// AUXILIAR: NOTIFICAÇÃO POR GMAIL
+// AUXILIAR: NOTIFICAÇÃO POR GMAIL COM SANITIZAÇÃO DE HTML
 // ============================================================================
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function sendInstitutionalNotificationEmail(config, protocol, evidenceId, folderUrl, attachments, pdfHash, jsonHash) {
-  var subject = 'Nova submissão — ' + protocol + ' — FONAR 16º BPM';
+  // Prevenção de Email Header Injection
+  var cleanProtocol = String(protocol).replace(/[\r\n]/g, '').trim();
+  var subject = 'Nova submissão — ' + cleanProtocol + ' — FONAR 16º BPM';
   
   var now = new Date();
   var formattedDate = Utilities.formatDate(now, 'America/Sao_Paulo', 'dd/MM/yyyy HH:mm:ss');
+
+  // Sanitização estrita contra HTML Injection em clientes de e-mail institucionais
+  var safeProtocol = escapeHtml(cleanProtocol);
+  var safeEvidenceId = escapeHtml(evidenceId);
+  var safeFormattedDate = escapeHtml(formattedDate);
+  var safeFolderUrl = escapeHtml(folderUrl);
+  var safePdfHash = escapeHtml(pdfHash);
+  var safeJsonHash = escapeHtml(jsonHash);
 
   var htmlBody = ''
     + '<div style="font-family: Arial, sans-serif; color: #1F2421; max-width: 650px; border: 1px solid #DDE0E5; border-radius: 8px; overflow: hidden;">'
@@ -272,12 +347,12 @@ function sendInstitutionalNotificationEmail(config, protocol, evidenceId, folder
     + '      Foi registrada uma nova submissão técnica no Formulário Auxiliar do FONAR. Os arquivos de evidência foram arquivados com integridade no Google Drive.'
     + '    </p>'
     + '    <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin: 18px 0; background-color: #F8F9FA;">'
-    + '      <tr><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-weight: bold; width: 35%;">Protocolo:</td><td style="padding: 8px 12px; border: 1px solid #E2E8F0; color: #AB2328; font-weight: bold; font-family: monospace;">' + protocol + '</td></tr>'
-    + '      <tr><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-weight: bold;">Evidence ID:</td><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-family: monospace;">' + evidenceId + '</td></tr>'
-    + '      <tr><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-weight: bold;">Data/Hora Local:</td><td style="padding: 8px 12px; border: 1px solid #E2E8F0;">' + formattedDate + ' (Horário de Brasília)</td></tr>'
-    + '      <tr><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-weight: bold;">Pasta Google Drive:</td><td style="padding: 8px 12px; border: 1px solid #E2E8F0;"><a href="' + folderUrl + '" style="color: #A08F63; font-weight: bold;">Abrir Pasta da Submissão</a></td></tr>'
-    + '      <tr><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-weight: bold;">PDF SHA-256:</td><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-family: monospace; font-size: 10px;">' + pdfHash + '</td></tr>'
-    + '      <tr><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-weight: bold;">JSON SHA-256:</td><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-family: monospace; font-size: 10px;">' + jsonHash + '</td></tr>'
+    + '      <tr><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-weight: bold; width: 35%;">Protocolo:</td><td style="padding: 8px 12px; border: 1px solid #E2E8F0; color: #AB2328; font-weight: bold; font-family: monospace;">' + safeProtocol + '</td></tr>'
+    + '      <tr><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-weight: bold;">Evidence ID:</td><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-family: monospace;">' + safeEvidenceId + '</td></tr>'
+    + '      <tr><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-weight: bold;">Data/Hora Local:</td><td style="padding: 8px 12px; border: 1px solid #E2E8F0;">' + safeFormattedDate + ' (Horário de Brasília)</td></tr>'
+    + '      <tr><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-weight: bold;">Pasta Google Drive:</td><td style="padding: 8px 12px; border: 1px solid #E2E8F0;"><a href="' + safeFolderUrl + '" style="color: #A08F63; font-weight: bold;">Abrir Pasta da Submissão</a></td></tr>'
+    + '      <tr><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-weight: bold;">PDF SHA-256:</td><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-family: monospace; font-size: 10px;">' + safePdfHash + '</td></tr>'
+    + '      <tr><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-weight: bold;">JSON SHA-256:</td><td style="padding: 8px 12px; border: 1px solid #E2E8F0; font-family: monospace; font-size: 10px;">' + safeJsonHash + '</td></tr>'
     + '    </table>'
     + '    <div style="background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 10px 14px; font-size: 11px; color: #92400E; margin-top: 16px;">'
     + '      <strong>Aviso de Ferramenta Auxiliar:</strong> Esta submissão deve ser transcrita manualmente no sistema institucional REDS pelo militar responsável.'

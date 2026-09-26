@@ -44,3 +44,22 @@ export const LEGAL_TEXTS = {
   }
 } as const;
 
+export function generateDeclarationText(params: {
+  victimName?: string;
+  dateStr?: string;
+  timeStr?: string;
+}): string {
+  const now = new Date();
+  const dateFormatted = params.dateStr
+    ? params.dateStr.includes('-')
+      ? params.dateStr.split('-').reverse().join('/')
+      : params.dateStr
+    : now.toLocaleDateString('pt-BR');
+  const timeFormatted = params.timeStr || now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const displayName = params.victimName && params.victimName.trim()
+    ? params.victimName.trim().toUpperCase()
+    : 'NOME DA CIDADÃ / VÍTIMA';
+
+  return `EU, ${displayName}, DECLARO QUE EM ${dateFormatted} ÀS ${timeFormatted}, PRESTEI AS INFORMAÇÕES REGISTRADAS NESTE FORMULÁRIO AUXILIAR DE PRIMEIRA RESPOSTA E AVALIAÇÃO DE RISCO (FONAR). CONFIRMO A VERACIDADE DAS INFORMAÇÕES PRESTADAS ACIMA E ESTOU CIENTE DE QUE OMITIR, EM DOCUMENTO PÚBLICO OU PARTICULAR, DECLARAÇÃO QUE DEVIA CONSTAR, OU NELE INSERIR OU FAZER DECLARAÇÃO FALSA OU DIVERSA DA QUE DEVIA SER ESCRITA, É CRIME PREVISTO NO ART. 299 DA LEI Nº 2.848/1940 (CÓDIGO PENAL BRASILEIRO - CPB), FICANDO O AUTOR SUJEITO À RECLUSÃO DE 1 A 5 ANOS E MULTA (SE O DOCUMENTO É PÚBLICO) E RECLUSÃO DE 1 A 3 ANOS E MULTA (SE O DOCUMENTO É PARTICULAR).`;
+}
+
