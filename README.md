@@ -1,307 +1,585 @@
-# Formulário Auxiliar Institucional — FONAR (PMMG)
-### Polícia Militar de Minas Gerais — 16º BPM / 1ª Cia PM Ind PVD
-**Arquitetura Estrita**: GitHub Pages + Google Apps Script + Google Drive + Gmail  
-*(Sem Supabase, sem banco de dados SQL/NoSQL, sem VPS, sem Kubernetes, sem infraestrutura complexa)*
+Formulário Auxiliar FONAR
+
+Aplicação web independente para preenchimento, organização e geração de arquivos relacionados ao Formulário Nacional de Avaliação de Risco (FONAR).
+
+Arquitetura: GitHub Pages + Google Apps Script + Google Drive + Gmail
+Sem: Supabase, banco de dados SQL/NoSQL, VPS, Kubernetes ou infraestrutura complexa.
+
+«[!WARNING]
+Aplicação independente e não oficial
+
+Este projeto é uma ferramenta de software independente. Não é desenvolvido, mantido, hospedado, homologado, certificado ou administrado por órgão público, força policial, entidade governamental ou qualquer outra instituição.
+
+O projeto não representa sistema oficial, não substitui sistemas governamentais ou corporativos e não implica autorização, endosso, homologação ou vínculo institucional.
+
+A utilização deve observar a legislação aplicável, as regras de proteção de dados e os procedimentos eventualmente exigidos pelo responsável pelo atendimento.»
 
 ---
 
-## 1. Princípio Fundamental e Finalidade
+1. Finalidade
 
-Este projeto disponibiliza uma aplicação web estática, leve e segura desenvolvida para reproduzir fielmente as perguntas do **Formulário Nacional de Avaliação de Risco (FONAR)** da Primeira Resposta, em apoio às ações de prevenção à violência doméstica da Polícia Militar de Minas Gerais (16º BPM), em consonância com a **Instrução de Serviço nº 01/2026 - 16º BPM** e a **Lei Maria da Penha (Lei Federal nº 11.340/2006)**.
+O projeto disponibiliza uma aplicação web estática destinada ao preenchimento estruturado de um formulário baseado no Formulário Nacional de Avaliação de Risco (FONAR).
 
-> [!IMPORTANT]
-> **Aviso de Ferramenta Auxiliar (Não Substituição do Sistema Institucional):**
-> Esta aplicação **NÃO substitui o sistema institucional oficial (REDS)**. Ela atua como ferramenta auxiliar para coleta, padronização e geração de um **Pacote de Evidência Autocontido**.
-> O envio oficial e a inserção dos dados no REDS deverão ser realizados manualmente pelo militar responsável pelo atendimento. [VALIDAR JURIDICAMENTE]
+A aplicação foi projetada para:
 
----
+- apresentar perguntas e opções de forma estruturada;
+- manter as respostas em memória durante o preenchimento;
+- gerar uma representação JSON dos dados;
+- gerar um documento PDF;
+- produzir um "MANIFEST.json" contendo hashes dos arquivos;
+- registrar uma cadeia de integridade baseada em hashes;
+- transmitir o pacote para um backend mínimo;
+- armazenar os arquivos em uma pasta do Google Drive;
+- permitir verificação posterior da integridade dos arquivos.
 
-## 2. Diagrama do Fluxo de Dados
-
-```
-                USUÁRIO (Policial / Atendente)
-                            |
-                            | HTTPS (Acesso público / QR Code / NFC)
-                            v
-          +------------------------------------+
-          |   GitHub Pages (Frontend Estático) |
-          |                                    |
-          |  • Coleta em Memória RAM           |
-          |  • Snapshot Imutável               |
-          |  • JSON Canônico (RFC 8785)        |
-          |  • PDF Determinístico              |
-          |  • MANIFEST com Hashes SHA-256     |
-          |  • Trilha de Auditoria (Hash Chain)|
-          +-----------------+------------------+
-                            |
-                            | HTTPS POST (Payload JSON + PDF Base64 + MANIFEST)
-                            v
-          +------------------------------------+
-          |        Google Apps Script          |
-          |  (Backend Mínimo sem Banco)        |
-          |                                    |
-          |  • Validação de Schema (<10MB)     |
-          |  • Idempotência via ScriptLock     |
-          |  • Conferência de Integridade      |
-          +--------+------------------+--------+
-                   |                  |
-                   v                  v
-         +------------------+   +------------------+
-         |   Google Drive   |   |      Gmail       |
-         |  (Arquivo Fixo   |   |   (Notificação   |
-         |   de Evidências) |   |    Secundária)   |
-         +------------------+   +------------------+
-                   |
-                   v
-         PREENCHIMENTO MANUAL
-         NO SISTEMA INSTITUCIONAL (REDS)
-```
-
-### O que passa por cada etapa:
-1. **Navegador (Frontend)**: Os dados residem **exclusivamente na memória RAM** durante o preenchimento. Nenhuma resposta é salva em `localStorage`, `sessionStorage`, `IndexedDB` ou cookies. Ao clicar em *Enviar*, o navegador gera o PDF, o JSON canônico e o MANIFEST, calcula todos os hashes SHA-256 e envia o pacote ao Apps Script. Após a resposta do servidor, a memória RAM do formulário é higienizada.
-2. **Google Apps Script**: Recebe o payload, valida a integridade dos hashes, evita duplicidades e grava os arquivos na pasta correspondente no Google Drive.
-3. **Google Drive**: Arquivo primário e definitivo da evidência (`FORM-YYYY-NNNNNN.pdf`, `FORM-YYYY-NNNNNN.json` e `MANIFEST.json`).
-4. **Gmail**: Processo secundário que despacha notificação com resumo e anexos para o e-mail configurado.
+O projeto não pretende substituir sistemas oficiais, bancos de dados governamentais ou procedimentos administrativos.
 
 ---
 
-## 3. Privacidade dos Dados no Navegador (Requisito Crítico)
+2. Diagrama do Fluxo de Dados
 
-> [!CAUTION]
-> **Regra Estrita de Não Armazenamento no Cliente:**
-> - O formulário **NÃO utiliza** `localStorage`, `sessionStorage`, `IndexedDB`, `WebSQL`, `Cookies` ou `CacheStorage` para armazenar as respostas ou dados pessoais do usuário.
-> - As respostas existem **exclusivamente em memória volátil (RAM)** durante a sessão de preenchimento.
-> - Não há funcionalidade de rascunho automático nem recuperação de sessão após recarregamento.
-> - Ao clicar em **"Enviar formulário"**, os dados são transmitidos imediatamente ao Google Apps Script.
-> - Após a confirmação de recebimento (`SUCCESS`), a aplicação executa a limpeza e descarte de referências das estruturas JavaScript que continham as respostas sensíveis.
-> - A aplicação não utiliza ferramentas de analytics, rastreadores ou telemetria de terceiros.
-> - Nenhum dado pessoal é exibido em logs de console (`console.log`) ou em parâmetros de URL (`?cpf=`, `?nome=`).
+                    USUÁRIO
+                       |
+                       | HTTPS
+                       v
+        +------------------------------------+
+        |        GitHub Pages                |
+        |      Frontend Estático             |
+        |                                    |
+        |  • Dados mantidos em memória       |
+        |  • Snapshot dos dados              |
+        |  • JSON Canônico                   |
+        |  • PDF                             |
+        |  • MANIFEST com SHA-256            |
+        |  • Hash Chain                      |
+        +----------------+-------------------+
+                         |
+                         | HTTPS POST
+                         | JSON + PDF + MANIFEST
+                         v
+        +------------------------------------+
+        |       Google Apps Script           |
+        |       Backend mínimo               |
+        |                                    |
+        |  • Validação do payload            |
+        |  • Controle de duplicidade         |
+        |  • Verificação de integridade      |
+        +------------+-------------+---------+
+                     |             |
+                     v             v
+          +----------------+  +----------------+
+          | Google Drive   |  | Gmail          |
+          |                |  |                |
+          | Arquivos       |  | Notificação    |
+          | do pacote      |  | opcional       |
+          +----------------+  +----------------+
 
-*Nota técnica: Em qualquer navegador moderno sob sandbox de sistema operacional, não é possível garantir a sobrescrita física de bytes de memória física pelo JavaScript devido ao gerenciador de lixo (Garbage Collector). A aplicação descarta todas as referências em nível de código.* [LIMITAÇÃO TÉCNICA]
+Fluxo
+
+1. O usuário acessa a aplicação pelo navegador.
+2. As respostas permanecem em estruturas de memória JavaScript durante o preenchimento.
+3. Nenhuma resposta é gravada intencionalmente em "localStorage", "sessionStorage", "IndexedDB" ou cookies.
+4. Ao solicitar o envio, a aplicação gera:
+   - PDF;
+   - JSON;
+   - "MANIFEST.json";
+   - hashes SHA-256;
+   - cadeia de integridade.
+5. O pacote é enviado ao Google Apps Script.
+6. O backend valida o payload e os hashes.
+7. Os arquivos podem ser armazenados no Google Drive.
+8. Opcionalmente, o sistema pode enviar uma notificação por e-mail.
+9. Após a conclusão do envio, as referências às estruturas que continham as respostas são descartadas pelo código da aplicação.
 
 ---
 
-## 4. Pré-Requisitos
+3. Privacidade e Armazenamento no Navegador
 
-Para instalar, testar e publicar o projeto, você precisará de:
-- **Conta Google**: Para hospedar o Google Drive e o Google Apps Script.
-- **Conta GitHub**: Para hospedar o repositório e publicar no GitHub Pages.
-- **Git**: Instalado localmente (`git --version`).
-- **Node.js**: Versão 20 ou 22 LTS instalada (`node -v`).
-- **npm**: Gerenciador de pacotes (`npm -v`).
-- **Navegador moderno**: Chrome, Firefox, Safari ou Edge atualizados.
+«[!CAUTION]
+Não armazenamento intencional das respostas no armazenamento persistente do navegador»
+
+A aplicação não utiliza, para armazenamento das respostas:
+
+- "localStorage";
+- "sessionStorage";
+- "IndexedDB";
+- WebSQL;
+- cookies;
+- CacheStorage.
+
+As respostas permanecem nas estruturas de memória utilizadas pela aplicação durante a sessão.
+
+Não existe mecanismo de rascunho automático ou recuperação das respostas após um recarregamento da página.
+
+Após a confirmação do envio, a aplicação descarta as referências às estruturas JavaScript utilizadas durante o preenchimento.
+
+A aplicação também não depende de ferramentas de analytics, rastreadores ou telemetria de terceiros.
+
+Dados pessoais não devem ser inseridos em:
+
+- URLs;
+- parâmetros de consulta;
+- logs de depuração;
+- mensagens de commit;
+- arquivos de configuração;
+- código-fonte público.
+
+«[!NOTE]
+O descarte das referências JavaScript não significa que seja possível garantir a sobrescrita física imediata dos bytes correspondentes na memória RAM. O gerenciamento da memória é realizado pelo navegador e pelo sistema operacional. A aplicação apenas elimina as referências aos objetos utilizados pelo formulário.»
 
 ---
 
-## 5. Passo a Passo de Configuração
+4. Pré-requisitos
 
-### 5.1 Criar a Pasta de Auditoria no Google Drive
-1. Acesse o [Google Drive](https://drive.google.com/) com a conta corporativa ou mantenedora.
-2. Crie uma pasta principal denominada: `Auditoria`.
-3. Abra a pasta `Auditoria` e copie o **ID da pasta** a partir da barra de endereços do navegador:
-   - Exemplo de URL: `https://drive.google.com/drive/folders/1a2B3c4D5e6F7g8H9...`
-   - O ID é a sequência após `/folders/`: `1a2B3c4D5e6F7g8H9...`.
-4. Guarde esse ID para a etapa seguinte.
-5. **Controle de Acesso ao Drive**: Mantenha a pasta com acesso restrito apenas aos militares e administradores autorizados. **Nunca compartilhe a pasta com "Qualquer pessoa com o link"**.
+Para instalar, testar e executar o projeto:
 
-### 5.2 Criar e Publicar o Google Apps Script
-1. Acesse [script.google.com](https://script.google.com/) e clique em **"Novo projeto"**.
-2. Nomeie o projeto como: `FONAR - Backend Institucional PMMG`.
-3. Substitua o conteúdo do arquivo `Código.gs` pelo código presente em [`apps-script/Code.js`](./apps-script/Code.js).
-4. No menu lateral, acesse **Configurações do Projeto** (ícone de engrenagem):
-   - Marque a opção: *"Mostrar arquivo de manifesto 'appsscript.json' no editor"*.
-   - Na seção **Propriedades do script**, adicione:
-     - `DRIVE_ROOT_FOLDER_ID`: Cole o ID da pasta do Drive obtido no passo 5.1.
-     - `EMAIL_DESTINATION`: Digite o e-mail institucional de destino (ex: `pvd16bpm@pmmg.mg.gov.br`).
-     - `FORM_NAME`: `FONAR`.
-     - `FORM_VERSION`: `1.0.0`.
-     - `ENVIRONMENT`: `production`.
-5. Volte ao Editor (`<>`), abra o arquivo `appsscript.json` e cole o conteúdo de [`apps-script/appsscript.json`](./apps-script/appsscript.json).
-6. **Autorização Inicial**:
-   - No seletor de funções no topo, selecione `setupPermissions` e clique em **Executar**.
-   - Conceda as permissões de acesso ao Drive e envio de e-mails para sua conta Google.
-7. **Publicar como Web App**:
-   - Clique em **Implantar** (Deploy) > **Nova implantação** (New deployment).
-   - Tipo: **Aplicativo da Web** (Web app).
-   - Descrição: `v1.0.0 - Produção FONAR`.
-   - Executar como: **Eu (seu-email@gmail.com)**.
-   - Quem pode acessar: **Qualquer pessoa (Anyone)**.
-   - Clique em **Implantar** e copie a **URL do aplicativo da Web** (`https://script.google.com/macros/s/.../exec`).
+- conta Google, caso sejam utilizados Google Drive e Google Apps Script;
+- conta GitHub, caso seja utilizado GitHub Pages;
+- Git;
+- Node.js 20 ou 22 LTS;
+- npm;
+- navegador moderno atualizado.
 
-### 5.3 Configurar o Frontend
-Crie um arquivo `.env` na raiz do projeto clonado (ou copie de `.env.example`):
+---
 
-```bash
+5. Configuração
+
+5.1 Criar a pasta no Google Drive
+
+1. Acesse o "Google Drive" (https://drive.google.com/).
+2. Crie uma pasta para armazenamento dos arquivos.
+3. Copie o ID da pasta pela URL.
+
+Exemplo:
+
+https://drive.google.com/drive/folders/1a2B3c4D5e6F7g8H9...
+
+O ID corresponde ao trecho:
+
+1a2B3c4D5e6F7g8H9...
+
+4. Guarde o ID para configuração do backend.
+5. Configure as permissões da pasta de acordo com a finalidade do projeto.
+
+«[!WARNING]
+Não utilize a opção "Qualquer pessoa com o link" para arquivos que contenham dados pessoais, salvo quando houver uma justificativa específica e adequada para isso.»
+
+---
+
+5.2 Configurar o Google Apps Script
+
+1. Acesse "Google Apps Script" (https://script.google.com/).
+2. Crie um novo projeto.
+3. Substitua o conteúdo do arquivo principal pelo código localizado em:
+
+apps-script/Code.js
+
+4. Em Configurações do Projeto, habilite a exibição do arquivo "appsscript.json", se necessário.
+5. Configure as propriedades do script:
+
+DRIVE_ROOT_FOLDER_ID
+EMAIL_DESTINATION
+FORM_NAME
+FORM_VERSION
+ENVIRONMENT
+
+Exemplo:
+
+DRIVE_ROOT_FOLDER_ID = ID_DA_PASTA
+EMAIL_DESTINATION = email@exemplo.com
+FORM_NAME = FONAR
+FORM_VERSION = 1.0.0
+ENVIRONMENT = production
+
+6. Configure o arquivo:
+
+apps-script/appsscript.json
+
+7. Execute a função de configuração de permissões, caso exista no projeto.
+8. Conceda somente as permissões necessárias.
+
+Publicação como Web App
+
+No Google Apps Script:
+
+Implantar
+→ Nova implantação
+→ Aplicativo da Web
+
+Configure conforme a necessidade do projeto e copie a URL gerada:
+
+https://script.google.com/macros/s/.../exec
+
+«[!WARNING]
+A configuração de acesso como "Qualquer pessoa" significa que o endpoint poderá receber requisições externas. Caso o projeto manipule dados pessoais, devem ser implementados controles adicionais de autenticação, autorização, validação e proteção contra abuso antes de utilização real.»
+
+---
+
+6. Configuração do Frontend
+
+Crie um arquivo ".env" na raiz do projeto ou utilize ".env.example":
+
 VITE_GOOGLE_APPS_SCRIPT_URL=https://script.google.com/macros/s/AKfycbx.../exec
-```
 
-> [!NOTE]
-> Se a variável `VITE_GOOGLE_APPS_SCRIPT_URL` for deixada vazia durante o desenvolvimento local, o sistema entrará automaticamente em **Modo de Simulação Local**, gerando todos os hashes e arquivos para download sem falhar na tela.
+Quando a variável estiver vazia durante o desenvolvimento local, a aplicação poderá utilizar o modo de simulação, caso essa funcionalidade esteja implementada no código.
+
+Nesse modo, o processamento pode ocorrer localmente, permitindo testar a geração dos arquivos sem realizar o envio ao backend.
 
 ---
 
-## 6. Instalação e Execução Local
+7. Instalação e Execução
 
-### 6.1 Instalar Dependências
-No terminal, execute:
-```bash
+Instalar dependências
+
 npm install
-```
 
-### 6.2 Rodar em Modo de Desenvolvimento
-```bash
+Executar em desenvolvimento
+
 npm run dev
-```
-Abra o navegador no endereço exibido (geralmente `http://localhost:5173/`).
 
-### 6.3 Executar Testes Automatizados
-```bash
+Normalmente a aplicação estará disponível em:
+
+http://localhost:5173/
+
+Executar testes
+
 npm run test
-```
 
-### 6.4 Compilar para Produção
-```bash
+Gerar build
+
 npm run build
-```
-O build estático pronto para publicação será gerado na pasta `dist/`.
+
+O resultado será produzido no diretório:
+
+dist/
 
 ---
 
-## 7. Roteiro de Teste Ponta a Ponta
+8. Teste Ponta a Ponta
 
-1. Abra a aplicação no navegador (`http://localhost:5173/`).
-2. Observe o aviso em vermelho de **Ferramenta Auxiliar** e o informativo de privacidade.
-3. Preencha os campos com **dados fictícios de teste** (nunca use dados pessoais reais em testes).
-4. Tente clicar em **"Enviar Formulário"** sem confirmar a declaração: o sistema impedirá o envio e indicará o erro.
-5. Marque a caixa de confirmação da **Declaração de Fidedignidade Técnica**.
-6. Clique em **"Enviar Formulário"**:
-   - O botão mudará para *"ENVIANDO E CALCULANDO HASHES..."*.
-   - A tela de confirmação exibirá o **Protocolo** (ex: `FORM-2026-784192`), o **Evidence ID** e o horário.
-7. Baixe a cópia do pacote clicando em **PDF**, **JSON** e **MANIFEST.json**.
-8. Verifique o Google Drive: acesse a pasta `Auditoria/2026/FONAR/FORM-2026-XXXXXX/` e confirme a gravação dos 3 arquivos.
-9. Verifique a caixa de entrada do Gmail: confirme o recebimento do e-mail com resumo e hashes.
-10. Verifique se o formulário foi limpo em memória e não permite duplo envio.
+Utilize exclusivamente dados fictícios durante os testes.
+
+1. Abra a aplicação.
+2. Verifique os avisos apresentados pela interface.
+3. Preencha o formulário com dados de teste.
+4. Tente enviar sem cumprir as validações obrigatórias.
+5. Confirme que a aplicação bloqueia o envio inválido.
+6. Preencha corretamente os campos obrigatórios.
+7. Execute o envio.
+8. Verifique a geração do:
+   - PDF;
+   - JSON;
+   - "MANIFEST.json".
+9. Verifique o protocolo gerado, quando aplicável.
+10. Verifique os arquivos armazenados no Google Drive.
+11. Verifique o envio de e-mail, caso essa função esteja habilitada.
+12. Recarregue a página e confirme que não existe mecanismo de recuperação automática das respostas anteriores.
+13. Teste a prevenção contra duplo envio.
 
 ---
 
-## 8. Verificação Independente de Hashes e MANIFEST
+9. Verificação de Integridade
 
-O pacote arquivado é **autocontido**: ele não depende do servidor ou de software proprietário para ser auditado.
+O pacote de arquivos utiliza hashes SHA-256 para permitir a detecção de alterações posteriores.
 
-### Método 1: Linha de Comando (CLI via Node.js)
-Abra o terminal e execute o utilitário fornecido:
+Um pacote típico contém:
 
-```bash
+FORM-YYYY-NNNNNN.pdf
+FORM-YYYY-NNNNNN.json
+MANIFEST.json
+
+O "MANIFEST.json" registra os hashes correspondentes aos arquivos.
+
+Verificação pelo Node.js
+
+Execute:
+
 npm run verify /caminho/para/pasta/FORM-2026-000123/
-```
-ou diretamente:
-```bash
+
+Ou:
+
 node tools/verify-package.js /caminho/para/pasta/FORM-2026-000123/
-```
 
-O script:
-1. Lê o `MANIFEST.json`.
-2. Calcula o SHA-256 de cada arquivo no diretório.
-3. Compara byte a byte contra os valores catalogados.
-4. Audita a cadeia de eventos (Hash Chain) registrada no arquivo JSON.
-5. Exibe `✓ [OK]` ou `✗ [ADULTERADO]`.
+O verificador:
 
-### Método 2: Verificador Integrado no Navegador
-Na barra superior da aplicação web, clique em **"Verificador de Integridade"**:
-1. Selecione o arquivo `MANIFEST.json`.
-2. Selecione os arquivos `FORM-YYYY-XXXXXX.pdf` e `FORM-YYYY-XXXXXX.json`.
-3. Clique em **Executar Verificação de Hashes**.
-4. O navegador calculará os hashes localmente via Web Crypto API e informará o resultado.
+1. lê o "MANIFEST.json";
+2. calcula o SHA-256 dos arquivos;
+3. compara os valores calculados com os valores registrados;
+4. verifica a cadeia de eventos, quando presente;
+5. informa o resultado da validação.
 
----
+Exemplo:
 
-## 9. Publicação no GitHub Pages
+✓ [OK]
 
-O projeto já inclui um workflow pronto do GitHub Actions em [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml).
+ou:
 
-1. Crie um repositório no seu GitHub (público ou privado).
-2. Adicione os arquivos e faça o push para a branch `main`:
-   ```bash
-   git add .
-   git commit -m "feat: implementacao completa do formulario auxiliar FONAR"
-   git branch -M main
-   git remote add origin https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
-   git push -u origin main
-   ```
-3. No GitHub, acesse **Settings** > **Pages**:
-   - Em **Build and deployment** > **Source**, selecione: **GitHub Actions**.
-4. Configure a URL do Apps Script:
-   - Acesse **Settings** > **Secrets and variables** > **Actions** > aba **Variables**.
-   - Clique em **New repository variable**.
-   - Nome: `VITE_GOOGLE_APPS_SCRIPT_URL`.
-   - Valor: URL do Web App do Google Apps Script (`https://script.google.com/macros/s/.../exec`).
-5. Ao realizar o push na branch `main`, a Action executará os testes, compilará o projeto e publicará no GitHub Pages.
-6. A URL pública será disponibilizada (ex: `https://seu-usuario.github.io/seu-repositorio/`).
+✗ [ADULTERADO]
 
 ---
 
-## 10. Configuração de QR Code e NFC
+10. Verificador no Navegador
 
-Para disponibilizar o acesso aos policiais militares ou atendentes:
+Caso o projeto contenha o verificador integrado:
 
-### 10.1 QR Code
-- Gere um QR Code apontando **exclusivamente para a URL pública do GitHub Pages**:
-  - Exemplo: `https://pmmg-16bpm.github.io/fonar/`
-  - Se utilizar token de acesso aleatório de sessão: `https://pmmg-16bpm.github.io/fonar/#token=a8f93bc...`
-- **REGRA DE SEGURANÇA**: Nunca inclua dados pessoais ou identificadores de vítimas/autores na URL (proibido o uso de `?cpf=`, `?nome=`, etc.).
+1. Abra a opção Verificador de Integridade.
+2. Selecione o "MANIFEST.json".
+3. Selecione o PDF correspondente.
+4. Selecione o JSON correspondente.
+5. Execute a verificação.
 
-### 10.2 Cartão ou Tag NFC
-- Grave na memória NDEF da tag NFC apenas o link HTTPS público do formulário.
-- Não armazene chaves criptográficas ou dados confidenciais na memória do chip NFC.
+Os hashes podem ser calculados localmente utilizando a Web Crypto API.
 
 ---
 
-## 11. Como Configurar Nova Versão do Formulário
+11. Publicação no GitHub Pages
 
-Quando houver alteração nas perguntas, avisos ou opções da Instrução de Serviço:
-1. **Nunca altere perguntas retroativamente**: Toda alteração deve gerar uma nova versão.
-2. Edite `src/config/version.ts` incrementando `form_version` (ex: de `1.0.0` para `1.1.0`).
-3. Edite as perguntas e opções em `src/config/formSchema.ts`.
-4. Edite textos e avisos em `src/config/legalTexts.ts`.
-5. Execute `npm run test` e `npm run build` para validar a integridade.
-6. Submissões antigas arquivadas no Google Drive permanecerão perfeitamente auditáveis porque continham o snapshot congelado da versão vigente na época.
+O projeto contém um workflow de GitHub Actions:
+
+.github/workflows/deploy.yml
+
+Para publicar:
+
+git add .
+git commit -m "implementacao do formulario"
+git branch -M main
+git remote add origin https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+git push -u origin main
+
+No GitHub:
+
+Settings
+→ Pages
+→ Build and deployment
+→ Source
+→ GitHub Actions
+
+Configure a variável:
+
+VITE_GOOGLE_APPS_SCRIPT_URL
+
+em:
+
+Settings
+→ Secrets and variables
+→ Actions
+→ Variables
+
+Após o push, o workflow executará os testes, realizará o build e publicará o conteúdo.
+
+A URL normalmente terá o formato:
+
+https://seu-usuario.github.io/seu-repositorio/
 
 ---
 
-## 12. Resolução de Problemas (Troubleshooting)
+12. QR Code e NFC
 
-| Sintoma | Causa Mais Provável | Solução |
-| :--- | :--- | :--- |
-| **"Não foi possível concluir o envio"** | URL do Apps Script incorreta ou bloqueio de rede | Verifique se a variável `VITE_GOOGLE_APPS_SCRIPT_URL` está correta e se a implantação do Apps Script está como "Qualquer pessoa" (Anyone). |
-| **Erro de CORS no navegador** | Requisição enviada com Content-Type complexo | O serviço já utiliza `text/plain;charset=utf-8` para evitar requisição preflight OPTIONS no Apps Script. Verifique a URL do Web App. |
-| **Arquivos não aparecem no Google Drive** | `DRIVE_ROOT_FOLDER_ID` incorreto ou sem permissão | Verifique nas Propriedades do Script se o ID da pasta "Auditoria" está correto e execute a função `setupPermissions` no editor. |
-| **E-mail não é recebido no Gmail** | Cota diária de envio excedida ou endereço inválido | O Drive ainda assim arquiva os arquivos com sucesso. Verifique o e-mail em `EMAIL_DESTINATION` e consulte a cota do Google. |
-| **Hash Divergente no Verificador** | Arquivo PDF ou JSON foi editado ou corrompido após download | Qualquer alteração de um único espaço ou byte altera o SHA-256. Utilize sempre os arquivos originais baixados do Drive. |
-| **GitHub Pages com tela em branco** | Caminho relativo de base incorreto | O projeto já está configurado com `base: './'` em `vite.config.ts`, suportando subpastas do GitHub Pages. |
+A aplicação pode ser acessada por QR Code ou NFC.
+
+QR Code
+
+O QR Code deve apontar somente para a URL pública da aplicação.
+
+Exemplo:
+
+https://seu-usuario.github.io/seu-repositorio/
+
+Não coloque dados pessoais na URL.
+
+Evite parâmetros como:
+
+?cpf=
+?nome=
+?telefone=
+?endereco=
+
+Também não utilize informações de pessoas como identificadores de sessão.
+
+NFC
+
+Uma tag NFC pode conter um registro NDEF com a URL HTTPS da aplicação.
+
+Exemplo:
+
+https://seu-usuario.github.io/seu-repositorio/
+
+Não armazene na tag:
+
+- dados pessoais;
+- respostas do formulário;
+- senhas;
+- tokens permanentes;
+- chaves criptográficas;
+- informações confidenciais.
 
 ---
 
-## 13. Limitações do Plano e do Serviço
+13. Versionamento do Formulário
 
-- **[LIMITAÇÃO DO SERVIÇO] Google Apps Script**:
-  - Limite de tempo de execução de 6 minutos por requisição (a geração do PDF no cliente elimina o risco de timeout).
-  - Limite de tamanho de requisição POST de aproximadamente 10 MB.
-  - Cota diária de despacho de e-mails via `MailApp`/`GmailApp` (100 destinatários/dia para contas gratuitas; 1.500 para Google Workspace).
-- **[LIMITAÇÃO TÉCNICA] Identificação do Dispositivo**:
-  - A aplicação coleta dados técnicos fornecidos pelo navegador (User-Agent, fuso horário, resolução de tela).
-  - O registro desses dados **não constitui prova absoluta da identidade física da pessoa** que manuseava o dispositivo.
-- **[LIMITAÇÃO TÉCNICA] Hash vs Assinatura Digital**:
-  - O cálculo do SHA-256 e o encadeamento de eventos (Hash Chain) atestam matematicamente a **integridade do conteúdo** e a detecção de adulteração, mas não substituem uma assinatura digital com certificado ICP-Brasil.
-- **[LIMITAÇÃO DO SERVIÇO] Backup do Google Drive**:
-  - Recomenda-se definir um procedimento operacional periódico de backup da pasta `Auditoria` do Google Drive para armazenamento secundário.
+Alterações nas perguntas ou opções devem gerar uma nova versão.
+
+Exemplo:
+
+1.0.0
+↓
+1.1.0
+
+Atualize:
+
+src/config/version.ts
+
+Altere as perguntas em:
+
+src/config/formSchema.ts
+
+Altere os textos em:
+
+src/config/legalTexts.ts
+
+Depois execute:
+
+npm run test
+npm run build
+
+Cada submissão deve preservar a versão do formulário utilizada no momento da geração do pacote.
+
+Isso permite identificar posteriormente qual estrutura de formulário originou determinado arquivo.
 
 ---
 
-## 14. Conformidade e Validação Jurídica (LGPD)
+14. Estrutura de Arquivos
 
-O software não substitui a análise jurídica formal. Os seguintes pontos devem ser validados pela assessoria jurídica da instituição:
+Uma estrutura típica:
 
-- **[VALIDAR JURIDICAMENTE] Base Legal**: Definição da base legal da LGPD (art. 7º, II - cumprimento de obrigação legal e art. 7º, III - execução de políticas públicas pela administração pública).
-- **[VALIDAR JURIDICAMENTE] Prazo de Retenção**: Fixação do tempo máximo de guarda dos arquivos de auditoria no Google Drive.
-- **[VALIDAR JURIDICAMENTE] Compartilhamento**: Controle de acesso às pastas do Drive e destinação de notificações por e-mail.
-- **[VALIDAR JURIDICAMENTE] Texto da Declaração**: Redação final dos termos de fidedignidade técnica apresentados ao atendente ou comunicante.
+.
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+│
+├── apps-script/
+│   ├── Code.js
+│   └── appsscript.json
+│
+├── src/
+│   ├── config/
+│   │   ├── formSchema.ts
+│   │   ├── legalTexts.ts
+│   │   └── version.ts
+│   └── ...
+│
+├── tools/
+│   └── verify-package.js
+│
+├── .env.example
+├── package.json
+├── README.md
+└── vite.config.ts
+
+---
+
+15. Resolução de Problemas
+
+Sintoma| Possível causa| Solução
+Não foi possível concluir o envio| URL do Apps Script incorreta ou indisponível| Verifique "VITE_GOOGLE_APPS_SCRIPT_URL" e a implantação do Web App.
+Erro de CORS| Configuração da requisição ou endpoint| Verifique o método utilizado e a configuração do Web App.
+Arquivos não aparecem no Drive| ID da pasta incorreto ou falta de permissão| Verifique "DRIVE_ROOT_FOLDER_ID" e as permissões do script.
+E-mail não recebido| Endereço incorreto ou limite de envio| Verifique "EMAIL_DESTINATION" e as cotas do serviço.
+Hash divergente| Arquivo alterado ou corrompido| Compare os arquivos com os arquivos originais.
+GitHub Pages em branco| Configuração incorreta do caminho base| Verifique "base" no "vite.config.ts".
+
+---
+
+16. Limitações Técnicas
+
+Google Apps Script
+
+O serviço possui limitações próprias de execução, armazenamento, requisições e envio de e-mails.
+
+Os limites aplicáveis podem mudar ao longo do tempo. Consulte a documentação atual do Google antes de dimensionar o sistema para uso em produção.
+
+Identificação do dispositivo
+
+Informações fornecidas pelo navegador, como:
+
+- User-Agent;
+- fuso horário;
+- resolução de tela;
+
+não constituem identificação inequívoca da pessoa que utilizou o dispositivo.
+
+SHA-256
+
+O SHA-256 permite verificar a integridade dos arquivos.
+
+Ele não prova, por si só:
+
+- quem criou o arquivo;
+- quem o preencheu;
+- quem possuía o dispositivo;
+- a autenticidade jurídica das informações;
+- a identidade da pessoa que realizou uma ação.
+
+Hash Chain
+
+A cadeia de hashes permite detectar alterações na sequência registrada.
+
+Ela não equivale a uma assinatura digital baseada em certificado.
+
+Memória do navegador
+
+O descarte das referências JavaScript não garante apagamento físico imediato dos dados da memória RAM.
+
+Google Drive
+
+O armazenamento no Google Drive não deve ser considerado, isoladamente, uma estratégia completa de backup.
+
+Para dados importantes, deve existir uma estratégia independente de backup e recuperação.
+
+---
+
+17. Proteção de Dados
+
+O projeto pode processar dados pessoais e, dependendo do conteúdo preenchido, dados pessoais potencialmente sensíveis.
+
+Antes de utilizar a aplicação com dados reais, deve ser realizada uma análise específica sobre:
+
+- finalidade do tratamento;
+- base legal aplicável;
+- minimização dos dados;
+- controle de acesso;
+- retenção;
+- descarte;
+- compartilhamento;
+- armazenamento;
+- segurança;
+- transferência de dados;
+- responsabilidades dos operadores e controladores;
+- requisitos legais aplicáveis.
+
+Este README não constitui parecer jurídico.
+
+A configuração do Google Drive, Google Apps Script, Gmail e GitHub deve ser compatível com o nível de proteção necessário para os dados tratados.
+
+---
+
+18. Aviso de Independência
+
+Este projeto é um software independente.
+
+Nenhum elemento deste repositório deve ser interpretado como:
+
+- representação oficial de órgão público;
+- sistema governamental;
+- sistema policial oficial;
+- software homologado;
+- software certificado;
+- produto desenvolvido por órgão público;
+- produto mantido por órgão público;
+- autorização para utilização de sistemas oficiais;
+- substituição de procedimentos oficiais;
+- substituição de sistemas corporativos ou governamentais.
+
+O uso do software é de responsabilidade de quem o instala, configura e utiliza.
+
+A presença de referências a legislação, formulários públicos ou procedimentos existentes tem finalidade exclusivamente descritiva e técnica e não estabelece vínculo institucional com os respectivos órgãos ou entidades.
